@@ -1,0 +1,30 @@
+pipeline {
+    agent any
+    stages {
+        stage ('Git Hub Pulling Code') {
+            steps {
+                git 'https://github.com/sagargadda113/Jenkins_Upgradev3.git'
+            }
+        }
+        stage ('Build war file'){
+            steps {
+                sh 'mvn -f java-tomcat-sample/pom.xml clean package'
+            }
+        }
+        stage ('Archive to Artifacts') {
+            steps {
+                archiveArtifacts artifacts: '**/*.war', followSymlinks: false
+            }
+        }
+        stage ('Copy Artifacts from Another Project') {
+            steps {
+                copyArtifacts filter: '**/*.war', fingerprintArtifacts: true, projectName: 'First_Pipeline_Job'
+            }
+        }
+        stage ('Deploy Artifacts to Tomcat') {
+            steps {
+                deploy adapters: [tomcat8(credentialsId: 'Tomcat_8Version', path: '', url: 'http://3.16.161.101:9096')], contextPath: '/', war: '**/*.war'
+            }
+        }
+    }
+}
